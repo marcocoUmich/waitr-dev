@@ -19,6 +19,8 @@ total_real_time_values = zeros(k_range_iters, 1);
 max_planning_time_values = zeros(k_range_iters, 1);
 num_brakes_values = zeros(k_range_iters, 1);
 joint_speed_means = zeros(7, k_range_iters); 
+tilt_values = zeros(k_range_iters, 1);
+num_trajectories = zeros(k_range_iters, 1);
 
 for idx = 1:k_range_iters
     k_range = k_range_table(:, idx);
@@ -34,6 +36,11 @@ for idx = 1:k_range_iters
         max_planning_time_values(idx) = max(loaded_data.summary.planning_time);
         num_brakes_values(idx) = sum(loaded_data.summary.stop_check);
         joint_speed_means(:, idx) = abs(mean(loaded_data.A.state(loaded_data.A.joint_speed_indices, :)')');
+        [max_tilt_angle, max_tilt_angle_index] = max(abs(loaded_data.A.state(13,:)));
+        tilt_values(idx) = rad2deg(max_tilt_angle);
+%         traj_size = size(loaded_data.iterations);
+%         num_trajectories(idx) = traj_size(2);
+        
     else
         disp(['File not found: ', filename]);
     end
@@ -43,7 +50,7 @@ end
 figure;
 
 % Subplot 1: k_range_idx values with bar colors based on goal_check
-subplot(4,1,1);
+subplot(3,1,1);
 for idx = 1:k_range_iters
     if goal_check_values(idx) == 1
         bar(idx, k_range_idx_values(idx), 'g'); % Green for goal_check == 1
@@ -52,30 +59,61 @@ for idx = 1:k_range_iters
     end
     hold on; 
 end
-xlabel('Iteration');
-ylabel('k_range_idx');
-title('k_range_idx Values with Goal Check');
+xlabel('k range iteration');
+ylabel('k range value');
+title('k range_idx Values with Goal Check');
 hold off;
 
 % Subplot 2: total_real_time and max_planning_time
-subplot(4,1,2);
+subplot(3,1,2);
 plot(1:k_range_iters, total_real_time_values, 'b-o', 1:k_range_iters, max_planning_time_values, 'r-*');
-xlabel('Iteration');
+xlabel('k range iteration');
 ylabel('Time (s)');
 legend('Total Real Time', 'Max Planning Time');
 title('Time Metrics');
 
-% Subplot 3: num_brakes
-subplot(4,1,3);
-bar(num_brakes_values);
-xlabel('Iteration');
-ylabel('Num Brakes');
-title('Number of Brakes');
 
-% Subplot 4: Mean joint speeds
-subplot(4,1,4);
+% Subplot 3: Mean joint speeds
+subplot(3,1,3);
 plot(joint_speed_means');
-xlabel('Iteration');
+xlabel('k range iteration');
 ylabel('Mean Joint Speed');
 title('Mean Joint Speeds');
 legend('Joint 1', 'Joint 2', 'Joint 3', 'Joint 4', 'Joint 5', 'Joint 6', 'Joint 7');
+
+figure;
+% Subplot 1: k_range_idx values with bar colors based on goal_check
+subplot(3,1,1);
+for idx = 1:k_range_iters
+    if goal_check_values(idx) == 1
+        bar(idx, k_range_idx_values(idx), 'g'); % Green for goal_check == 1
+    else
+        bar(idx, k_range_idx_values(idx), 'r'); % Red for goal_check == 0
+    end
+    hold on; 
+end
+xlabel('k range iteration');
+ylabel('k range value');
+title('k range_idx Values with Goal Check');
+hold off;
+
+% Subplot 4: tilt_angle
+subplot(3,1,2);
+bar(tilt_values);
+xlabel('k range iteration');
+ylabel('Max tilt angle (degrees)');
+title('Max tilt angle');
+% 
+% % Subplot 3: num_trajectories
+% subplot(4,1,3);
+% bar(num_trajectories);
+% xlabel('k range iteration');
+% ylabel('Num Trajectories');
+% title('Number of trajectories');
+
+% Subplot 4: num_brakes
+subplot(3,1,3);
+bar(num_brakes_values);
+xlabel('k range iteration');
+ylabel('Num Brakes');
+title('Number of Braking Maneuvers');

@@ -109,8 +109,8 @@ stop_threshold = 3 ; % number of failed iterations before exiting
 
 
 % swing
-start = [0;-pi/2;0;0;0;0;0];
-goal = [pi;-pi/2;pi;0;0;0;0];
+% start = [0;-pi/2;0;0;0;0;0];
+% goal = [pi;-pi/2;pi;0;0;0;0];
 
 % random that struggles to reach goal
 % use to debug gradients as well
