@@ -8,6 +8,7 @@ classdef uarmtd_planner < robot_arm_generic_planner
         trajopt_start_tic;
         iter = 0;
         first_iter_pause_flag = true ;
+        k_range = [0.392699; 0.392699; 0.392699; 0.392699; 0.392699; 0.392699; 0.392699];
         
         % jrs and agent info
         jrs_info;
@@ -179,7 +180,7 @@ classdef uarmtd_planner < robot_arm_generic_planner
                     % cuda-dev/PZsparse-Bernstein/Trajectory.h 
                     % !!!!!!
                     fprintf('Setting k_range in uarmtd_planner \n');
-                    P.jrs_info.g_k_bernstein = [pi/32; pi/32; pi/72; pi/72; pi/72; pi/32; pi/72];
+                    P.jrs_info.g_k_bernstein = P.k_range;
 %                     P.jrs_info.g_k_bernstein = pi/32*ones(P.jrs_info.n_q, 1);
 
                     if P.use_graph_planner
@@ -223,6 +224,9 @@ classdef uarmtd_planner < robot_arm_generic_planner
                             fprintf(cuda_input_file, '%.10f ', temp(ind));
                         end
                         fprintf(cuda_input_file, '\n');
+                    end
+                    for ind = 1:length(P.k_range)
+                        fprintf(cuda_input_file, '%.10f ', P.k_range(ind));
                     end
     
                     fclose(cuda_input_file);

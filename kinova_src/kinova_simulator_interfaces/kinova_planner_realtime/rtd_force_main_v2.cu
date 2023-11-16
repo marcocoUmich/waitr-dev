@@ -78,6 +78,10 @@ Section I:
             inputstream >> obstacles[i];
         }
     }
+    //Remove this for const k_range
+    for (int i = 0; i < NUM_FACTORS; i++) {
+        inputstream >> k_range[i];
+    }
 
     inputstream.close();
 
@@ -290,10 +294,16 @@ Section IV:
     if (mynlp->feasible) {
         for (int i = 0; i < NUM_FACTORS; i++) {
             outputstream1 << mynlp->solution[i] << '\n';
+            cout<<"KRANGE FOR "<<i<<"    ";
+            cout <<k_range[i]<<'\n';
         }
     }
     else {
         outputstream1 << -1 << '\n';
+        for (int i = 0; i < NUM_FACTORS; i++) {
+        cout<<"KRANGE FOR "<<i<<"    ";
+        cout <<k_range[i]<<'\n';
+        }
     }
 
     // output time cost (in milliseconds) in C++

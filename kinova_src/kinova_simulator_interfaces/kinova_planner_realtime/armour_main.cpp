@@ -1,5 +1,7 @@
 #include "NLPclass.h"
 #include "BufferPath.h"
+#include "Parameters.h"
+#include <iostream>
 
 const std::string inputfilename = pathname + "armour.in";
 const std::string outputfilename1 = pathname + "armour.out";
@@ -74,6 +76,9 @@ Section I:
             inputstream >> obstacles[i];
         }
     }
+    // for (int i=0; i<NUM_FACTORS; i++){
+    //     inputstream >> k_range[i];
+    // }
 
     inputstream.close();
 
@@ -263,6 +268,7 @@ Section III:
     }
     else {
         cout << "        CUDA & C++: Time taken by Ipopt: " << duration2.count() << " milliseconds" << endl;
+        cout << "        CUDA & C++: k_range_values: " << k_range[0] << " " << endl;
     }
 
 /*

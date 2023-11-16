@@ -59,7 +59,7 @@ plot_waypoint_arm_flag  = true ;
 lookahead_distance = 0.1 ;
 
 % plotting
-plot_while_running = true ;
+plot_while_running = false ;
 
 % simulation
 max_sim_time = 172800 ; % 48 hours
@@ -71,8 +71,8 @@ stop_threshold = 3 ; % number of failed iterations before exiting
 % goal = [1; 1; 1; 1; 1; 1; 1]; % goal configuration
 
 % simple rotation
-goal = [0;-pi/2;0;0;0;0;0];
-start = [pi/4;-pi/2;0;0;0;0;0];
+% goal = [0;-pi/2;0;0;0;0;0];
+% start = [pi/4;-pi/2;0;0;0;0;0];
 
 % start = [-pi/6;-pi/2;-pi/2;pi/2;0;pi/2;pi/2];
 % goal = [pi/6;-pi/2;pi/2;pi/2;pi;-pi/2;pi/2];
@@ -98,8 +98,8 @@ start = [pi/4;-pi/2;0;0;0;0;0];
 
 
 % swing
-% start = [0;-pi/2;0;0;0;0;0];
-% goal = [pi;-pi/2;pi;0;0;0;0];
+start = [0;-pi/2;0;0;0;0;0];
+goal = [pi;-pi/2;pi;0;0;0;0];
 
 % random that struggles to reach goal
 % use to debug gradients as well
@@ -166,6 +166,19 @@ else
 end
 
 A.LLC.setup(A);
+
+%Setup params for looping different K ranges
+k_range_mins = [pi/72; pi/72; pi/72; pi/72; pi/72; pi/72; pi/72];
+k_range_maxes =  [pi/24; pi/24; pi/62; pi/62; pi/62; pi/24; pi/62];
+k_range_iters =  10;
+
+%Calculate individual k values. Keeps ratios the same for now
+iter_arr = 1:1:k_range_iters;
+iter_arr = iter_arr - 1;
+k_diffs = k_range_maxes - k_range_mins;
+k_range_table = (iter_arr.*k_diffs/(k_range_iters-1)) + k_range_mins;
+
+
 
 P = uarmtd_planner('verbose', verbosity, ...
                    'first_iter_pause_flag', false, ...

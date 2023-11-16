@@ -2,7 +2,8 @@
 #define PZ_SPARSE_CPP
 
 #include "PZsparse.h"
-
+//remove this for const k_range
+double k_range[NUM_FACTORS];
 /*
 Helper functions
 */
