@@ -8,7 +8,7 @@ classdef uarmtd_planner < robot_arm_generic_planner
         trajopt_start_tic;
         iter = 0;
         first_iter_pause_flag = true ;
-        k_range = [0.392699; 0.392699; 0.392699; 0.392699; 0.392699; 0.392699; 0.392699];
+        k_range = [pi/32; pi/32; pi/72; pi/72; pi/72; pi/32; pi/72];
         
         % jrs and agent info
         jrs_info;
