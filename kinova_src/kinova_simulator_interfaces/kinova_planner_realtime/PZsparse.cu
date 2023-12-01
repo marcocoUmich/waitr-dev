@@ -4,6 +4,9 @@
 #include "PZsparse.h"
 //remove this for const k_range
 double k_range[NUM_FACTORS];
+double SIMPLIFY_THRESHOLD;
+double DURATION;
+
 /*
 Helper functions
 */

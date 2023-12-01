@@ -9,6 +9,8 @@ classdef uarmtd_planner < robot_arm_generic_planner
         iter = 0;
         first_iter_pause_flag = true ;
         k_range = [pi/32; pi/32; pi/72; pi/72; pi/72; pi/32; pi/72];
+        n_t = 40;
+        s_thresh = 5e-4;
         
         % jrs and agent info
         jrs_info;
@@ -171,7 +173,7 @@ classdef uarmtd_planner < robot_arm_generic_planner
 
                 %%%%% This one
                 if strcmp(P.traj_type, 'bernstein')
-                    P.jrs_info.n_t = 40;
+                    P.jrs_info.n_t = P.n_t;
                     P.jrs_info.n_q = 7;
                     P.jrs_info.n_k = 7;
                     P.jrs_info.c_k_bernstein = zeros(7,1);
@@ -228,6 +230,8 @@ classdef uarmtd_planner < robot_arm_generic_planner
                     for ind = 1:length(P.k_range)
                         fprintf(cuda_input_file, '%.10f ', P.k_range(ind));
                     end
+                    fprintf(cuda_input_file, '%.10f ', P.s_thresh);
+                    fprintf(cuda_input_file, '%.10f ', P.DURATION);
     
                     fclose(cuda_input_file);
     

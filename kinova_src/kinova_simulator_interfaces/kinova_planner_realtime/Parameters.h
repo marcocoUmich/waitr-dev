@@ -6,20 +6,24 @@
 // #include "KinovaWithoutGripperInfo.h"
 // #include "KinovaForceInfo.h"
 #include "KinovaFixedGripperInfo.h"
+
+//EITHER DEFINE NTSteps HERE OR INCLUDE A HEADER WITH IT
+#include "NTSteps.h"
+// number of time steps (This should be an EVEN number!!!)
+//#define NUM_TIME_STEPS 40
+
 // #include "KinovaForceHardwareInfo.h"
 
 // #define DEBUG_MODE true
 
 // Parameters for PZsparse.h:
     // monomials with a coefficient smaller than this number will be reduced (should be close to V_m magnitude)
-    #define SIMPLIFY_THRESHOLD 2.5e-4
+    extern double SIMPLIFY_THRESHOLD;
 
 // Parameters for Trajectories.h:
     // Duration of the Bezier Curve
-    #define DURATION 2.0
+    extern double DURATION;
 
-    // number of time steps (This should be an EVEN number!!!)
-    #define NUM_TIME_STEPS 40
 
     // range of parameters (size of generators in PZ).
     extern double k_range[NUM_FACTORS]; // (radian)
@@ -65,7 +69,7 @@
 // Parameters for armour_main.cpp
     #define IPOPT_OPTIMIZATION_TOLERANCE 1e-4
 
-    #define IPOPT_MAX_CPU_TIME 100.0 // 14.0
+    #define IPOPT_MAX_CPU_TIME 10.0 // 14.0
 
     #define IPOPT_PRINT_LEVEL 0
 

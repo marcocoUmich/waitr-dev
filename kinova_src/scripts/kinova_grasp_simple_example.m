@@ -49,7 +49,11 @@ LLC_V_max = 2e-2;
 alpha_constant = 10;
 Kr = 4.0;
 
-%%% for HLP
+%%% for HLP, 
+% krange, duration, simplify, numtimesteps
+%Add plotting for reachable force sets from different parameters (k_ranges)
+%(cone with PZ plot)
+%
 % default is a straight-line planner
 if_use_RRT = false; % use an RRT HLP
 if_use_graph_HLP = false; % use a graph HLP
@@ -59,7 +63,7 @@ plot_waypoint_arm_flag  = true ;
 lookahead_distance = 0.1 ;
 
 % plotting
-plot_while_running = false ;
+plot_while_running = true ;
 
 % simulation
 max_sim_time = 172800 ; % 48 hours
@@ -96,17 +100,12 @@ start = [pi/4;-pi/2;0;0;0;0;0];
 %    -2.0458;
 %     1.4523];
 
-
-% swing
-% start = [0;-pi/2;0;0;0;0;0];
-% goal = [pi;-pi/2;pi;0;0;0;0];
-
 % random that struggles to reach goal
 % use to debug gradients as well
 % start = [0.9534;-1.4310;0.1330;0.6418;-0.9534;-0.9534;0.0637];
 % goal = [1.62310000000000;-1.59990000000000;-0.137000000000000;0.493080000000000;-3.26490000000000;-2.23000000000000;-0.246620000000000];
 
-obstacles{1} = box_obstacle_zonotope('center', [3; 3; 3],...
+obstacles{1} = box_obstacle_zonotope('center', [10; 3; 3],...
                                      'side_lengths', [0.1; 0.1; 0.1]) ;
 % obstacles{2} = box_obstacle_zonotope('center', [0.3; 0; 0.4],...
 %                                      'side_lengths', [0.1; 0.8; 0.05]) ;

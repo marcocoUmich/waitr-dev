@@ -82,7 +82,8 @@ Section I:
     for (int i = 0; i < NUM_FACTORS; i++) {
         inputstream >> k_range[i];
     }
-
+    inputstream >> SIMPLIFY_THRESHOLD;
+    inputstream >> DURATION;
     inputstream.close();
 
     double t_plan = 0.5*DURATION; // optimize the distance between q_des and the desired trajectories at t_plan
@@ -296,6 +297,7 @@ Section IV:
             outputstream1 << mynlp->solution[i] << '\n';
             cout<<"KRANGE FOR "<<i<<"    ";
             cout <<k_range[i]<<'\n';
+            cout<<DURATION<<SIMPLIFY_THRESHOLD;
         }
     }
     else {
