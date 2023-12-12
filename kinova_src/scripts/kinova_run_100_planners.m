@@ -44,7 +44,7 @@ add_uncertainty_to = 'none'; % choose 'all', 'link', or 'none'
 links_with_uncertainty = {}; % if add_uncertainty_to = 'link', specify links here.
 uncertain_mass_range = [0.97, 1.03];
 
-agent_move_mode = 'integrator' ; % pick 'direct' or 'integrator'
+agent_move_mode = 'save_full_trajectories' ; % pick 'direct' or 'integrator'
 use_CAD_flag = true; % plot robot with CAD or bounding boxes
 
 %%% for LLC
@@ -54,10 +54,9 @@ if_use_mex_controller = true;
 LLC_V_max = 2e-2;
 alpha_constant = 10;
 Kr = 4.0;
-
 %%%File Saving
 save_file_header = 'trial_' ;
-file_location = '/home/marco/Desktop/WAITR_experiments' ;
+file_location = '/media/marco/D/WAITR_experiments_redo2' ;
 if ~exist(file_location, 'dir')
     mkdir(file_location);
 end
@@ -76,7 +75,7 @@ plot_while_running = false ;
 
 % simulation
 max_sim_time = 172800 ; % 48 hours
-max_sim_iter = 100 ;
+max_sim_iter = 200 ;
 stop_threshold = 3 ; % number of failed iterations before exiting
 
 %%% for world
@@ -111,8 +110,8 @@ stop_threshold = 3 ; % number of failed iterations before exiting
 
 
 % swing
-start = [0;-pi/2;0;0;0;0;0];
-goal = [pi/2;-pi/2;0;0;0;0;0];
+start = [pi/2;-pi/2;0;0;0;0;0];
+goal = [0;-pi/2;0;0;0;0;0];
 
 % random that struggles to reach goal
 % use to debug gradients as well
@@ -149,8 +148,8 @@ end
 
 %Setup default k_range, NTSteps, s_thresh
 k_range = [pi/32; pi/32; pi/72; pi/72; pi/72; pi/32; pi/72];
-n_t = 128;
-s_thresh = 2.5e-4;
+n_t = 40;
+s_thresh = 5e-4;
 
 %Setup params for looping different TSteps
 NTSteps = [20:4:20];
@@ -160,8 +159,9 @@ SThreshs = [1e-4:0.25e-4:1e-4];
 
 %Setup params for looping different K ranges
 k_range_mins = [pi/96; pi/96; pi/96; pi/96; pi/96; pi/96; pi/96];
-k_range_maxes =  [pi/8; pi/8; pi/8; pi/8; pi/8; pi/8; pi/8];
-k_range_iters =  2; %If this is 1 it returns NAN
+k_range_maxes = [pi/8; pi/8; pi/8; pi/8; pi/8; pi/8; pi/8];
+k_range_iters = 50;
+%If this^ is 1 it returns NAN
 
 %Calculate individual k values. Keeps ratios the same for now
 iter_arr = 1:1:k_range_iters;
@@ -178,7 +178,7 @@ NTStepsHeader = "/home/marco/Documents/GitHub/waitr-dev/kinova_src/kinova_simula
 %change s_thresh ('ST').
 %For these experiments, there is a new TS header. This breaks the normal
 %compilation with the initialize script
-experiments_to_run = {'KR', 'ST', 'TS'}; 
+experiments_to_run = {'KR'}; 
 
 for x = 1:1:length(experiments_to_run)
     experiment = experiments_to_run{x};

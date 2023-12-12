@@ -1,1 +1,1 @@
-#define NUM_TIME_STEPS 20
+#define NUM_TIME_STEPS 40

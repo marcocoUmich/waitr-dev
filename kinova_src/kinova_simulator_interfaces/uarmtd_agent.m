@@ -29,6 +29,17 @@ classdef uarmtd_agent < robot_arm_agent
         int_lyapunov = [];
         int_disturbance = [];
 
+        %For saving trajectories and constraints
+        full_state = [];
+        full_time = [];
+        full_u = [];
+        input_constraints = [];
+        input_radii = [];
+        velocity_bounds = [];
+        position_bounds = [];
+        velocity_extrema = [];
+        position_extrema = [];
+
         % for dealing with measurement noise:
         add_measurement_noise_ = false;
         measurement_noise_pos_;
@@ -320,6 +331,18 @@ classdef uarmtd_agent < robot_arm_agent
             A.state = zeros(A.n_states,1) ;
             A.reference_state = zeros(A.n_states,1) ;
             A.reference_acceleration = zeros(A.n_states/2,1) ;
+
+            % reset to zero by default
+            A.state = zeros(A.n_states,1) ;
+            A.full_state = zeros(A.n_states,1) ;
+            A.reference_state = zeros(A.n_states,1) ;
+            A.reference_acceleration = zeros(A.n_states/2,1) ;
+            A.velocity_bounds = [];
+            A.input_constraints = [];
+            A.velocity_extrema = [];
+            A.position_extrema = [];
+            A.input_radii = [];
+            A.position_bounds = [];
             
             if nargin > 1
                 if length(state) == A.n_states/2
@@ -327,18 +350,22 @@ classdef uarmtd_agent < robot_arm_agent
                     A.vdisp('Using provided joint positions',6)
                     A.state(A.joint_state_indices) = state ;
                     A.reference_state(A.joint_state_indices) = state ;
-                    
+                    A.full_state(A.joint_state_indices) = state ; 
+
                     if nargin > 2
                         % fill in joint speeds if they are provided
                         A.vdisp('Using provided joint speeds',6)
                         A.state(A.joint_speed_indices) = joint_speeds ;
                         A.reference_state(A.joint_speed_indices) = joint_speeds ;
+                        A.full_state(A.joint_speed_indices) = state ;
+
                     end
                 elseif length(state) == A.n_states
                     % fill in full position and speed state if provided
                     A.vdisp('Using provided full state',6)
                     A.state = state ;
                     A.reference_state = state ;
+                    A.full_state = state ;
                 else
                     error('Input has incorrect number of states!')
                 end
@@ -346,9 +373,11 @@ classdef uarmtd_agent < robot_arm_agent
             
             A.vdisp('Resetting time and inputs',3)
             A.time = 0 ;
+            A.full_time = 0;
             A.input = zeros(A.n_inputs,1) ;
+            A.full_u = zeros(A.n_inputs,1) ;
             A.input_time = 0 ;
-            
+
             % reset LLC
             if isa(A.LLC,'arm_PID_LLC')
                 A.vdisp('Resetting low-level controller integrator error.',3)
@@ -480,6 +509,51 @@ classdef uarmtd_agent < robot_arm_agent
 %                     int_disturbance_out = interval(zeros(size(uout)), zeros(size(uout)));
 %                     int_lyap_out = interval(zeros(size(tout)), zeros(size(tout)));
 %                     r_out = zeros(A.n_states/2, size(tout, 2));
+                case 'save_full_trajectories'
+                    % call the ode solver to simulate agent
+                    [tout,zout] = A.integrator(@(t,z) A.dynamics(t,z,planner_info),...
+                                               [0 t_move], zcur) ;
+                    % initialize trajectories to log
+                    uout = zeros(A.n_inputs, size(tout, 2));
+                    A.full_state = [A.full_state, Z_ref(:, 2:end)];
+                    A.full_time = [A.full_time, A.full_time(end)+T_ref(:, 2:end)];
+                    
+                   
+                    nominal_out = zeros(size(uout));
+                    robust_out = zeros(size(uout));
+%                     disturbance_out = zeros(size(uout));
+%                     lyap_out = zeros(size(tout));
+%                     r_out = zeros(A.n_states/2, size(tout, 2));
+%                     int_disturbance_out = interval(zeros(size(uout)), zeros(size(uout)));
+%                     int_lyap_out = interval(zeros(size(tout)), zeros(size(tout)));
+
+                    % store approximate inputs at each time:
+                    for j = 1:length(T_ref)
+                        t = T_ref(j);
+                        z_meas = Z_ref(:,j);
+%                         [uout(:, j), nominal_out(:, j), robust_out(:, j),...
+%                          disturbance_out(:, j), lyap_out(:, j), r_out(:, j),...
+%                          int_disturbance_out(:, j), int_lyap_out(:, j)] = ...
+%                          A.LLC.get_control_inputs(A, t, z_meas, planner_info);
+                        [uout(:, j), nominal_out(:, j), robust_out(:, j)] = ...
+                         A.LLC.get_control_inputs(A, t, z_meas, planner_info);
+                    end
+                    A.full_u = [A.full_u, uout(:,1:end-1)] ;
+                    
+                    uout = zeros(A.n_inputs, size(tout, 2));
+                    nominal_out = zeros(size(uout));
+                    robust_out = zeros(size(uout));
+                    for j = 1:length(tout)
+                        t = tout(j);
+                        z_meas = zout(:,j);
+%                         [uout(:, j), nominal_out(:, j), robust_out(:, j),...
+%                          disturbance_out(:, j), lyap_out(:, j), r_out(:, j),...
+%                          int_disturbance_out(:, j), int_lyap_out(:, j)] = ...
+%                          A.LLC.get_control_inputs(A, t, z_meas, planner_info);
+                        [uout(:, j), nominal_out(:, j), robust_out(:, j)] = ...
+                        A.LLC.get_control_inputs(A, t, z_meas, planner_info);
+                    end
+
                 otherwise
                     error('Please set A.move_mode to ''integrator'' or ''direct''!')
             end

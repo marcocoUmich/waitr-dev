@@ -38,7 +38,7 @@ add_uncertainty_to = 'none'; % choose 'all', 'link', or 'none'
 links_with_uncertainty = {}; % if add_uncertainty_to = 'link', specify links here.
 uncertain_mass_range = [0.97, 1.03];
 
-agent_move_mode = 'integrator' ; % pick 'direct' or 'integrator'
+agent_move_mode = 'save_full_trajectories' ; % pick 'direct' or 'integrator'
 use_CAD_flag = true; % plot robot with CAD or bounding boxes
 
 %%% for LLC
@@ -75,8 +75,8 @@ stop_threshold = 3 ; % number of failed iterations before exiting
 % goal = [1; 1; 1; 1; 1; 1; 1]; % goal configuration
 
 % simple rotation
+start = [pi/2;-pi/2;0;0;0;0;0];
 goal = [0;-pi/2;0;0;0;0;0];
-start = [pi/4;-pi/2;0;0;0;0;0];
 
 % start = [-pi/6;-pi/2;-pi/2;pi/2;0;pi/2;pi/2];
 % goal = [pi/6;-pi/2;pi/2;pi/2;pi;-pi/2;pi/2];
@@ -167,15 +167,7 @@ end
 A.LLC.setup(A);
 
 %Setup params for looping different K ranges
-k_range_mins = [pi/72; pi/72; pi/72; pi/72; pi/72; pi/72; pi/72];
-k_range_maxes =  [pi/24; pi/24; pi/62; pi/62; pi/62; pi/24; pi/62];
-k_range_iters =  10;
-
-%Calculate individual k values. Keeps ratios the same for now
-iter_arr = 1:1:k_range_iters;
-iter_arr = iter_arr - 1;
-k_diffs = k_range_maxes - k_range_mins;
-k_range_table = (iter_arr.*k_diffs/(k_range_iters-1)) + k_range_mins;
+k_range = [0.4722; 0.4722;0.4722; 0.4722; 0.4722; 0.4722; 0.4722];
 
 
 
@@ -189,6 +181,7 @@ P = uarmtd_planner('verbose', verbosity, ...
                    'use_cuda', use_cuda_flag,...
                    'plot_HLP_flag', true, ...
                    'lookahead_distance', 0.4, ...
+                   'k_range', k_range, ...
                    'u_s', u_s,...
                    'surf_rad', surf_rad,...
                    'DURATION', DURATION) ; % 't_move_temp', t_move't_plan', t_plan,...'t_stop', t_stop % _wrapper
@@ -400,6 +393,7 @@ num_brakes = sum(summary.stop_check)
 
 [max_tilt_angle max_tilt_angle_index] = max(abs(A.state(13,:)))
 max_tilt_angle_deg = rad2deg(max_tilt_angle)
+disp(max_tilt_angle_deg)
 
 % forward_kin = forward_kinematics(A.state(A.joint_state_indices,max_tilt_angle_index),params.true.T0,params.true.joint_axes)
 % corresponding_euler_angles = rotm2eul(forward_kin(1:3,1:3))
