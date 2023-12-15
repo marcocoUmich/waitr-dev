@@ -1,15 +1,14 @@
 %%Initialize vars and call the app
 
-gen_FileList = false; % Set this to true or false as needed
+gen_FileList = true; % Set this to true or false as needed
 
 % Define the directory path
-directory = 'path/to/your/directory'; % Replace with the actual directory path
+directory = '/media/marco/D/WAITR_experiments_redo2/TS'; % Replace with the actual directory path
 
 % Call the function if gen_FileList is true
 if gen_FileList
-    FileList = generateFileList(directory);
-    % Display the generated FileList
-    disp(FileList);
+    [FileList, type] = generateFileList(directory);
+    
 end
 
 
@@ -30,9 +29,11 @@ if exist('W', 'var')
     args{end+1} = 'W';
     args{end+1} = W;
 end
-if exist('Filelist', 'var')
-    args{end+1} = 'Filelist';
-    args{end+1} = Filelist;
+if exist('FileList', 'var')  
+    args{end+1} = 'Filelist';  
+    args{end+1} = FileList;
+    args{end+1} = 'Type';
+    args{end+1} = type;
 end
 
 
@@ -59,7 +60,9 @@ function plotting_app(varargin)
 
 
     addParameter(p, 'Filelist', [], @(x) isempty(x) || (iscell(x) && all(cellfun(@ischar, x))));
-    
+    addParameter(p, 'Type', [], @(x) ismember(x, {'KR', 'ST', 'TS'}));
+
+
     % Parse the inputs
     parse(p, varargin{:});
 
@@ -69,7 +72,7 @@ function plotting_app(varargin)
     S = p.Results.S;
     W = p.Results.W;
     Filelist = p.Results.Filelist;
-
+    Type = p.Results.Type;
 
     % Initialize a global variable to hold the save path
     save_path = pwd; 
@@ -243,7 +246,7 @@ function plotting_app(varargin)
 
     function set_save_path(src, event)
         folder_name = uigetdir;
-        if folder_name ~= 0 % Make sure the user didn't click cancel
+        if folder_name ~= 0 
             save_path = folder_name;
             set(save_path_display, 'String', save_path);
         end
@@ -254,10 +257,10 @@ function plotting_app(varargin)
         % Use the save_path from the display
         save_path = get(save_path_display, 'String');
         
-        % Build the full file path
+
         file_path = fullfile(save_path, 'Plot1.png');
         
-        % Save the figure to the specified path
+
         set(ax1, 'Visible', 'on');
         exportgraphics(ax1, file_path);
     end
@@ -266,34 +269,75 @@ function plotting_app(varargin)
         % Use the save_path from the display
         save_path = get(save_path_display, 'String');
         
-        % Build the full file path
         file_path = fullfile(save_path, 'Plot2.png');
         
-        % Save the figure to the specified path
         set(ax2, 'Visible', 'on');
         exportgraphics(ax2, file_path);
     end
 
     function save_large_plot(src, event)
-        % Use the save_path from the display
         save_path = get(save_path_display, 'String');
         
-        % Build the full file path for the large plot
         file_path = fullfile(save_path, 'LargePlot.png');
         
-        % Save the figure of the large plot to the specified path
         exportgraphics(ax3, file_path);
     end
 
-    function display_help(src, event)
-        % Help message text
-        help_message = append('This is where your help text will be displayed. ' , ...
-                       'You can provide instructions, descriptions, and ' , ...
-                       'any other relevant information to assist the user.');
-                   
-        % Create a modal dialog box with the help message
-        msgbox(help_message, 'Help', 'help');
+  function display_help(src, event)
+    % Help message text with HTML tags for bold
+    help_message = ['<html>Plot Availability in the Application<br><br>', ...
+        '<b>Single Iteration Plots</b><br>', ...
+        '<ul><li><b>Available Plots:</b><br>', ...
+        '  - <b>Position, Velocity, Acceleration, Accel_ref:</b><br>', ...
+        '    Available if A is a non-empty instance of uarmtd_agent,<br>', ...
+        '    and it has properties state, time, and these properties are not empty.<br>', ...
+        '  - <b>Torque:</b><br>', ...
+        '    Available if A has properties input, time, and input is not empty.<br>', ...
+        '  - <b>Pos_braking, Vel_braking, Accel_braking:</b><br>', ...
+        '    Available if A has a non-empty full_state,<br>', ...
+        '    and it has properties full_state, full_time.<br>', ...
+        '  - <b>Torq_bounds:</b><br>', ...
+        '    Available if A has a non-empty full_u and properties input_constraints, input_radii.<br><br>', ...
+        '</li><li><b>Unavailable Plots (marked with "NA"):</b><br>', ...
+        '  - If the conditions for the available plots are not met, the corresponding plots are marked as "NA" (Not Available).<br><br>', ...
+        '</li></ul><b>Comparison Types (Y-axis)</b><br>', ...
+        '<ul><li><b>Available Plots:</b><br>', ...
+        '  - mean_v, max_plan_t, total_real_t, n_brakes, goal_check: Available if Filelist is not empty.<br>', ...
+        '  - max_tilt: Additionally available if W is an instance of kinova_grasp_world_static and Filelist is not empty.<br><br>', ...
+        '</li><li><b>Unavailable Plots (marked with "NA"):</b><br>', ...
+        '  - If Filelist is empty, all comparison types are marked as "NA".<br><br>', ...
+        '</li></ul><b>Comparison Types (X-axis)</b><br>', ...
+        '<ul><li><b>Available Plots (depends on Type):</b><br>', ...
+        '  - k_range: Available if Type is ''KR''.<br>', ...
+        '  - n_timesteps: Available if Type is ''ST''.<br>', ...
+        '  - s_thresh: Available if Type is ''TS''.<br><br>', ...
+        '</li><li><b>Unavailable Plots (marked with "NA"):</b><br>', ...
+        '  - If Filelist is empty or if the conditions for a specific Type are not met, ', ...
+        '    the corresponding plots are marked as "NA".<br>', ...
+        '</li></ul></html>'];
+
+
+    fig_width = 600;
+    fig_height = 500;
+    f = figure('Name', 'Help', 'NumberTitle', 'off', 'MenuBar', 'none', 'Position', [100 100 fig_width fig_height], 'Resize', 'off');
+    jTextPane = javax.swing.JTextPane();
+    jTextPane.setContentType('text/html');
+    jTextPane.setText(help_message);
+    jTextPane.setEditable(false);
+
+    jScrollPane = javax.swing.JScrollPane(jTextPane);
+
+
+    jScrollPane.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+   
+    [~, container] = javacomponent(jScrollPane, [0, 0, fig_width, fig_height], f);
+    set(container, 'Units', 'normalized', 'Position', [0 0 1 1]);
     end
+
+
+
+
 
     function spinner_callback(src, ~)
         % Get the current value from the spinner
@@ -305,12 +349,10 @@ function plotting_app(varargin)
         if (value == 0)
             set(src, 'String', "All");
         else
-            % Set the spinner's value to the corrected value
             set(src, 'String', num2str(value));
         end
         
-        % Update the value wherever needed or store it in the GUI's handle structure
-        % For example, you could store it in the UserData property of the figure
+
         set(main_fig, 'UserData', value);
     end
     function dropdown1_callback(src, ~)
@@ -320,7 +362,6 @@ function plotting_app(varargin)
             src.Value = find(single_iteration_selectable, 1); % Find the first selectable option
         else
             spinner_value = str2double(get(spinner, 'String'));
-            % Set comparison dropdowns to 'Off' when a single iteration type is selected
             switch activePlot
                 case 1
                     P1single_iteration_types_idx = src.Value;
@@ -350,7 +391,6 @@ function plotting_app(varargin)
         disp('Selected option is not available. Check help to see what is needed!');
         src.Value = find(comparison_types_x_selectable, 1);
     else
-        % Set single iteration dropdown to 'Off' when a comparison type is selected
         switch activePlot
             case 1
                 P1comparison_type_x_idx = src.Value;
@@ -384,7 +424,6 @@ function plotting_app(varargin)
         disp('Selected option is not available. Check help to see what is needed!');
         src.Value = find(comparison_types_y_selectable, 1);
     else
-        % Set single iteration dropdown to 'Off' when a comparison type is selected
         switch activePlot
             case 1
                 P1comparison_type_y_idx = src.Value;
@@ -413,8 +452,6 @@ function plotting_app(varargin)
     end
 
     function [single_iter, single_select] = determineSingleIterationTypes()
-    % Example logic to determine available types
-    % This could be based on variables in the workspace or other conditions
     single_iter = {"Off"};
     single_select = [1,0,0,0, 0,0,0,0,0,0,0];
     if ~isempty(A) && isa(A, 'uarmtd_agent')
@@ -491,11 +528,19 @@ function plotting_app(varargin)
     end
     end
     function [compar_x, compar_x_select] = determineComparisonTypesX()
-    % Example logic to determine available types
-    % This could be based on variables in the workspace or other conditions
     if ~isempty(Filelist)
-        compar_x = {'Off','k_range', 'n_timesteps', "s_thresh"};
-        compar_x_select = [1,1,1,1];
+        
+        if Type=='KR'
+            compar_x_select = [1,1,0,0];
+            compar_x = {'Off','k_range', 'n_timesteps (NA)', "s_thresh (NA)"};
+        elseif Type=='TS'
+            compar_x_select = [1,0,1,0];
+            compar_x = {'Off','k_range (NA)', 'n_timesteps', "s_thresh (NA)"};
+        else
+            compar_x_select = [1,0,0,1];
+            compar_x = {'Off','k_range (NA)', 'n_timesteps (NA)', "s_thresh"};
+        end
+        
     else
         compar_x = {'Off','k_range (NA)', 'n_timesteps (NA)', "s_thresh (NA)"};
         compar_x_select = [1,0,0,0];
@@ -588,69 +633,79 @@ function plotting_app(varargin)
             iteration = val;
             plot_torques(A.joint_input_limits, A.full_u, A.input_constraints, A.input_radii, A.full_time, iteration, 0)
         elseif (idx==11)
+            iteration = val;
+            plot_force(iteration, A.fs, A.ns, A.f_rs_c, A.f_rs_r, A.n_rs_c, A.n_rs_r, A.f_const);
         end
     end
     function plot_comparison(plt, xidx, yidx)
-        % Assuming Filelist is defined in the outer scope or passed as an argument
         Filelist;
-        
+        disp("PLOTTING COMPARISON, this takes a second...")
         y_data = [];
         x_data = [];
         x_label = '';
         y_label = '';
-        
         for idx = 1:length(Filelist)
             loaded_data = load(Filelist{idx});
-    
+            disp(loaded_data)
             % Assign x_data and labels based on xidx
             switch xidx
-                case 1
-                    x_data(idx) = loaded_data.k_range(1);
-                    x_label = 'k_range';
                 case 2
-                    x_data(idx) = loaded_data.n_tsteps;
-                    x_label = 'n_t_steps';
+
+                    x_data(idx) = loaded_data.k_range(1);
+                    x_label = 'k range';
                 case 3
-                    x_data(idx) = loaded_data.s_trhesh;
-                    x_label = 's_thresh';
+
+                    x_data(idx) = loaded_data.n_t;
+                    x_label = 'ntsteps';
+                case 4
+
+                    x_data(idx) = loaded_data.s_thresh;
+                    x_label = 'sthresh';
             end
     
             % Assign y_data and labels based on yidx
             switch yidx
-                case 1
-                    y_data(:, idx) = abs(mean(loaded_data.A.state(loaded_data.A.joint_speed_indices, :)'))';
-                    y_label = 'mean_v';
                 case 2
-                    y_data(idx) = max(loaded_data.summary.planning_time);
-                    y_label = 'max_plan_t';
+
+                    y_data(:, idx) = abs(mean(loaded_data.A.state(loaded_data.A.joint_speed_indices, :)'))';
+                    y_label = 'mean v';
                 case 3
-                    y_data(idx) = loaded_data.summary.total_real_time;
-                    y_label = 'total_real_t';
+
+                    y_data(idx) = max(loaded_data.summary.planning_time);
+                    y_label = 'max plan t';
                 case 4
-                    y_data(idx) = sum(loaded_data.summary.stop_check);
-                    y_label = 'n_brakes';
+                  
+                    y_data(idx) = loaded_data.summary.total_real_time;
+                    y_label = 'total real t';
                 case 5
+
+                    y_data(idx) = sum(loaded_data.summary.stop_check);
+                    y_label = 'n brakes';
+                case 6
+
                     [max_tilt_angle, ~] = max(abs(loaded_data.A.state(13,:)));
                     y_data(idx) = rad2deg(max_tilt_angle);
-                    y_label = 'max_tilt_angle';
-                case 6
+                    y_label = 'max tilt angle';
+                case 7
+
                     y_data(idx) = loaded_data.summary.goal_check;
-                    y_label = 'goal_check';
+                    y_label = 'goal check';
             end
         end
-    
+        disp(x_data)
         % Plotting based on y_data type
         switch yidx
-            case 1 % mean_v
-                plot(plt, x_data, y_data');
+            case 2 % mean_v
+                disp("Plotting_V")
+                plot(plt, x_data, y_data'); % Plot the ith row of y against x
                 ylabel(plt, 'Mean Joint Speed');
                 title(plt, 'Mean Joint Speeds');
                 legend(plt, 'Joint 1', 'Joint 2', 'Joint 3', 'Joint 4', 'Joint 5', 'Joint 6', 'Joint 7');
-            case {2, 3, 4, 5} % max_plan_t, total_real_t, n_brakes, max_tilt_angle
+            case {3, 4, 5, 6} % max_plan_t, total_real_t, n_brakes, max_tilt_angle
                 bar(plt, x_data, y_data);
                 ylabel(plt, y_label);
                 title(plt, y_label);
-            case 6 % goal_check
+            case 7 % goal_check
                 % Color based on goal_check
                 for idx = 1:length(x_data)
                     barColor = 'r'; % Default to red
@@ -671,25 +726,33 @@ function plotting_app(varargin)
 
 end
 %% Create a fileList if needed:
-% Specify the directory containing the .mat files
-function FileList = generateFileList(directory)
-    % Get a list of all .mat files in the directory
-    files = dir(fullfile(directory, 'iteration_*.mat'));
+function [FileList, type] = generateFileList(directory)
+    FileList = {};
+    if contains(directory, 'KR')
+        filePattern = 'KR_iteration_*.mat';
+        type = 'KR';
+    elseif contains(directory, 'ST')
+        filePattern = 'ST_iteration_*.mat';
+        type = 'ST';
+    elseif contains(directory, 'TS')
+        filePattern = 'TS_iteration_*.mat';
+        type = 'TS';
+    else
+        error('Directory does not contain KR, ST, or TS in its path.');
+    end
+    files = dir(fullfile(directory, filePattern));
 
-    % Extract file names and numbers
     fileNames = {files.name};
-    numbers = regexp(fileNames, 'iteration_(\d+).mat', 'tokens');
-    
-    % Flatten the nested cell array structure
-    numbers = [numbers{:}];
-    numbers = cellfun(@(x) str2double(x{1}), [numbers{:}]);
-    
-    % Sort the files based on numbers
-    [~, sortIdx] = sort(numbers);
-    sortedFiles = fileNames(sortIdx);
-    
-    % Create the file list with full paths
-    FileList = fullfile(directory, sortedFiles);
+
+    iterationNumbers = regexp(fileNames, '\d+', 'match');
+    iterationNumbers = str2double([iterationNumbers{:}]);
+
+    [~, sortIdx] = sort(iterationNumbers);
+    sortedFileNames = fileNames(sortIdx);
+
+    FileList = fullfile(directory, sortedFileNames);
 end
+
+
 
 

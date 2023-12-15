@@ -39,6 +39,13 @@ classdef uarmtd_agent < robot_arm_agent
         position_bounds = [];
         velocity_extrema = [];
         position_extrema = [];
+        f_rs_c = [];
+        n_rs_c = [];
+        f_rs_r = [];
+        n_rs_r = [];
+        f_const = [];
+        fs = [];
+        ns = [];
 
         % for dealing with measurement noise:
         add_measurement_noise_ = false;
@@ -343,7 +350,14 @@ classdef uarmtd_agent < robot_arm_agent
             A.position_extrema = [];
             A.input_radii = [];
             A.position_bounds = [];
-            
+            A.f_rs_c = [];
+            A.n_rs_c = [];
+            A.f_rs_r = [];
+            A.n_rs_r = [];
+            A.f_const = [];
+            A.fs = [];
+            A.ns = [];
+                
             if nargin > 1
                 if length(state) == A.n_states/2
                     % fill in joint positions if they are provided
@@ -425,6 +439,9 @@ classdef uarmtd_agent < robot_arm_agent
             % compute dynamics
             zd(A.joint_state_indices) = qd(:) ;
             zd(A.joint_speed_indices) = qdd(:) ;
+            [us, fs, ns] = rnea(q, qd, qd, qdd, true, A.params.nominal);
+            A.fs = [A.fs, fs];
+            A.ns = [A.ns, ns];
         end
 
         function [M, C, g] = calculate_dynamics(~, q, qd, params)
@@ -456,7 +473,7 @@ classdef uarmtd_agent < robot_arm_agent
             
             % get the time, input, and reference trajectory to use for
             % moving the agent
-            [T_used,U_used,Z_used] = A.move_setup(t_move,T_ref,U_ref,Z_ref) ;
+            [T_used,U_used,Z_used] = A.move_setup(t_move,T_ref,U_ref,Z_ref);
 
             % also get reference acceleration:
             qdd_des = [];

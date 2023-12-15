@@ -295,9 +295,9 @@ Section IV:
     if (mynlp->feasible) {
         for (int i = 0; i < NUM_FACTORS; i++) {
             outputstream1 << mynlp->solution[i] << '\n';
-            cout<<"KRANGE FOR "<<i<<"    ";
+            cout<<"DURATION: "<<DURATION<<", S_THRESH: "<<SIMPLIFY_THRESHOLD<<", NTSTEPS: "<<NUM_TIME_STEPS;
+            cout<<", KRANGE FOR "<<i<<"    ";
             cout <<k_range[i]<<'\n';
-            cout<<DURATION<<SIMPLIFY_THRESHOLD;
         }
     }
     else {

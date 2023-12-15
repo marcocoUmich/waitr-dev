@@ -150,6 +150,7 @@ end
 k_range = [pi/32; pi/32; pi/72; pi/72; pi/72; pi/32; pi/72];
 n_t = 40;
 s_thresh = 5e-4;
+DURATION = 1.0;
 
 %Setup params for looping different TSteps
 NTSteps = [20:4:20];
@@ -160,7 +161,7 @@ SThreshs = [1e-4:0.25e-4:1e-4];
 %Setup params for looping different K ranges
 k_range_mins = [pi/96; pi/96; pi/96; pi/96; pi/96; pi/96; pi/96];
 k_range_maxes = [pi/8; pi/8; pi/8; pi/8; pi/8; pi/8; pi/8];
-k_range_iters = 50;
+k_range_iters = 75;
 %If this^ is 1 it returns NAN
 
 %Calculate individual k values. Keeps ratios the same for now
@@ -178,7 +179,7 @@ NTStepsHeader = "/home/marco/Documents/GitHub/waitr-dev/kinova_src/kinova_simula
 %change s_thresh ('ST').
 %For these experiments, there is a new TS header. This breaks the normal
 %compilation with the initialize script
-experiments_to_run = {'KR'}; 
+experiments_to_run = {'KR', 'ST', 'TS'}; 
 
 for x = 1:1:length(experiments_to_run)
     experiment = experiments_to_run{x};

@@ -328,7 +328,14 @@ classdef simulator_armtd < simulator
 %                                 end
                                 control_input_radius = readmatrix('armour_control_input_radius.out', 'FileType', 'text');
                                 constraints = readmatrix('armour_constraints.out', 'FileType', 'text');
+                                force_reachset_values = readmatrix('buffer/armour_wrench_values.out', 'FileType', 'text');
+                                force_constraint_values = readmatrix('buffer/armour_force_constraint_radius.out', 'FileType', 'text');
+                                f_rs_c = force_reachset_values(:,1:3);
+                                n_rs_c = force_reachset_values(:,4:6);
+                                f_rs_r = force_reachset_values(:,7:9);
+                                n_rs_r = force_reachset_values(:,10:12);
 
+                                disp(size(control_input_radius))
                                 input_radii = reshape(control_input_radius, [1, NUM_JOINTS, NUM_TIME_STEPS]);
                                 input_constraints = reshape(constraints(1:NUM_TIME_STEPS*NUM_JOINTS, :), [1, NUM_JOINTS, NUM_TIME_STEPS]);
                                 velocity_bounds = constraints(end-NUM_JOINTS*2+1:end, :);
@@ -340,6 +347,11 @@ classdef simulator_armtd < simulator
                                 
                                 
                                 %Save values
+                                A.f_rs_c = [A.f_rs_c; f_rs_c];
+                                A.n_rs_c = [A.n_rs_c; n_rs_c];
+                                A.f_rs_r = [A.f_rs_r; f_rs_r];
+                                A.n_rs_r = [A.n_rs_r; n_rs_r];
+                                A.f_const = [A.f_const, force_constraint_values];
                                 A.input_radii = [A.input_radii; input_radii];
                                 A.input_constraints = [A.input_constraints; input_constraints];
                                 A.velocity_bounds = [A.velocity_bounds, velocity_bounds];
